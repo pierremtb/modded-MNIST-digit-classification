@@ -1,3 +1,7 @@
+# Michael Segev
+# COMP 551 MP3
+# March 3 2019
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -16,16 +20,16 @@ class DataContainer:
         plt.imshow(self.images[idx])
         plt.show()
 
-    def get_image(self, idx):
-        return self.images[idx]
+    def get_images(self, start_idx, num_images):
+        return self.images[start_idx:start_idx+num_images]
 
-    def get_label(self, idx):
+    def get_labels(self, start_idx, num_labels):
         if self.labels is not None:
-            return self.labels.iloc[idx]['Category']
+            return (self.labels.iloc[start_idx:start_idx+num_labels]['Category']).values
 
-    def get_data(self, idx):
+    def get_datas(self, start_idx, num_datas):
         # returns a tuple containing the image and associated label
         if self.labels is not None:
-            return self.get_image(idx), self.get_label(idx)
+            return self.get_images(start_idx, num_datas), self.get_labels(start_idx, num_datas)
         else:
-            return self.get_image(idx)
+            return self.get_images(start_idx, num_datas)

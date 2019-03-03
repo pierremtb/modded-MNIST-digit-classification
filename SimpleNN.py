@@ -1,3 +1,7 @@
+# Michael Segev
+# COMP 551 MP3
+# March 3 2019
+
 import torch
 import torch.nn as nn
 import torch.optim
@@ -41,7 +45,7 @@ class SimpleNN(torch.nn.Module):
         y_pred = self.linear2(h1)
         return y_pred
 
-    def train(self, x, y):
+    def train_batch(self, x, y):
         self.losses = []
         for epoch in range(50):
             # Forward pass: Compute predicted y by passing x to the model

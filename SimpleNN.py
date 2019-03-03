@@ -27,10 +27,10 @@ class SimpleNN(torch.nn.Module):
         # define trainer
         # loss function
         # self.criterion = torch.nn.MSELoss(reduction='sum')
-        self.criterion = torch.nn.MSELoss(reduction='mean')
+        self.criterion = torch.nn.MSELoss(reduction='sum')
         # optimizer
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-6)
-        # self.optimizer = torch.optim.SGD(self.parameters(), lr=2.5e-4)
+        # self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-5)
+        self.optimizer = torch.optim.SGD(self.parameters(), lr=1e-3)
 
     def forward(self, x):
         h1 = F.relu(self.linear1(x))
@@ -39,23 +39,16 @@ class SimpleNN(torch.nn.Module):
         return y_pred
 
     def train_batch(self, x, y):
-        self.losses = []
-        epoch = 0
-        loss = math.inf
-        while loss > 1e-2 and epoch < 1000:
-            # Forward pass: Compute predicted y by passing x to the model
-            y_pred = self(x)
-
-            # Compute and print loss
-            loss = self.criterion(y_pred, y)
-            self.losses.append(loss.data.item())
-            if not epoch % 100:
-                print(f"Epoch : {epoch}    Loss : {loss.data.item()}")
-            # Reset gradients to zero, perform a backward pass, and update the weights.
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
-            epoch += 1
+        # Forward pass: Compute predicted y by passing x to the model
+        y_pred = self(x)
+        # Compute and print loss
+        loss = self.criterion(y_pred, y)
+        self.losses.append(loss.data.item())
+        # Reset gradients to zero, perform a backward pass, and update the weights.
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+        return loss
 
     def plot_loss(self):
         plt.title('Loss over time')

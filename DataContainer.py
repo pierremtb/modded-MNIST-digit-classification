@@ -20,14 +20,20 @@ class DataContainer:
         plt.imshow(self.images[idx])
         plt.show()
 
-    def get_images(self, start_idx, num_images):
-        return self.images[start_idx:start_idx+num_images]
+    def get_images(self, start_idx=0, num_images=-1):
+        if num_images == -1:
+            return self.images
+        else:
+            return self.images[start_idx:start_idx+num_images]
 
-    def get_labels(self, start_idx, num_labels):
+    def get_labels(self, start_idx=0, num_labels=-1):
         if self.labels is not None:
-            return (self.labels.iloc[start_idx:start_idx+num_labels]['Category']).values
+            if num_labels == -1:
+                return self.labels['Category'].values
+            else:
+                return (self.labels.iloc[start_idx:start_idx+num_labels]['Category']).values
 
-    def get_datas(self, start_idx, num_datas):
+    def get_datas(self, start_idx=0, num_datas=-1):
         # returns a tuple containing the image and associated label
         if self.labels is not None:
             return self.get_images(start_idx, num_datas), self.get_labels(start_idx, num_datas)

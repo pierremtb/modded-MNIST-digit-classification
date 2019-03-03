@@ -12,30 +12,36 @@ import numpy as np
 train_data = DataContainer("./Data/train_images.pkl", "./Data/train_labels.csv")
 
 # create model and load it on cuda core
-model = SimpleNN(d_in=4096, h=100, d_out=10).cuda()
+model = SimpleNN(d_in=4096, h=500, d_out=10).cuda()
+model.init_optimizer()
 
 # batch train the model
 batch_size = 64
 
-# get required number of samples for this batch
-imgs, labels = train_data.get_datas(0, batch_size)
+for batchNum in range(10):
+    # get required number of samples for this batch
+    imgs, labels = train_data.get_datas(batchNum*batch_size, batch_size)
 
-# convert labels to neural network format (1 output neuron per label)
-# TODO: move this to DataContainer class...do we ever want the numerical label?
-label_array = np.empty((batch_size, 10))
-for idx, label in enumerate(labels):
-    label_array[idx] = label_to_array(label, 10)
+    # convert labels to neural network format (1 output neuron per label)
+    # TODO: move this to DataContainer class...do we ever want the numerical label?
+    label_array = np.empty((batch_size, 10))
+    for idx, label in enumerate(labels):
+        label_array[idx] = label_to_array(label, 10)
 
-# flatten image since we have a fully connected model
-imgs_flatten = np.empty((imgs.shape[0], imgs.shape[1]*imgs.shape[2]))
-for idx, image in enumerate(imgs):
-    imgs_flatten[idx] = image.ravel()
+    # flatten image since we have a fully connected model
+    imgs_flatten = np.empty((imgs.shape[0], imgs.shape[1]*imgs.shape[2]))
+    for idx, image in enumerate(imgs):
+        imgs_flatten[idx] = (image.ravel()/255.0)  # normalize the data
 
-# create tensors from batch and load them on cuda core
-cuda0 = torch.device('cuda:0')
-x_batch = torch.tensor(imgs_flatten, dtype=torch.float32, requires_grad=False, device=cuda0)
-y_batch = torch.tensor(label_array, dtype=torch.float32, requires_grad=False, device=cuda0)
+    # create tensors from batch and load them on cuda core
+    cuda0 = torch.device('cuda:0')
+    x_batch = torch.tensor(imgs_flatten, dtype=torch.float32, requires_grad=False, device=cuda0)
+    y_batch = torch.tensor(label_array, dtype=torch.float32, requires_grad=False, device=cuda0)
 
-# train model using batch
-model.train_batch(x_batch, y_batch)
-model.plot_loss()
+    # train model using batch
+    model.train_batch(x_batch, y_batch)
+    model.plot_loss()
+
+y_test = model(x_batch)
+print(y_test)
+print(y_batch)

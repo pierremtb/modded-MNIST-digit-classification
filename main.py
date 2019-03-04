@@ -13,6 +13,7 @@ train_data = DataContainer("./Data/train_images.pkl", "./Data/train_labels.csv")
 
 # create model and load it on cuda core
 model = SimpleNN(d_in=4096, h=2048, d_out=10).cuda()
+# model = SimpleNN(d_in=4096, h=2048, d_out=10)
 model.init_optimizer()
 
 imgs, labels = train_data.get_datas()
@@ -27,11 +28,10 @@ for idx, label in enumerate(labels):
 imgs_flatten = np.empty((imgs.shape[0], imgs.shape[1]*imgs.shape[2]))
 for idx, image in enumerate(imgs):
     imgs_flatten[idx] = (image.ravel()/255.0)  # normalize the data
-
+    # imgs_flatten[idx] = image.ravel()  # normalize the data
 # create tensors and load them on cuda core
 cuda0 = torch.device('cuda:0')
-imgs_tensor = torch.tensor(imgs_flatten, dtype=torch.float32, device=cuda0)
-labels_tensor = torch.tensor(label_array, dtype=torch.float32, device=cuda0)
+# cuda0 = torch.device('cpu')
 
 # batch train the model
 batch_size = 64
@@ -45,25 +45,33 @@ if labels.shape[0] % batch_size != 0:
     num_batches += 1
     last_batch_size = labels.shape[0] % batch_size
 
-for epoch in range(20):
+for epoch in range(100):
     for batch_num in range(num_batches):
         #  slice tensors according into requested batch
         if batch_num == num_batches - 1:
             # last batch logic!
-            print("Last batch!")
+            # print("Last batch!")
             current_batch_size = last_batch_size
         else:
             current_batch_size = batch_size
 
-        x_batch = imgs_tensor[batch_num*current_batch_size:batch_num*current_batch_size+current_batch_size]
-        y_batch = labels_tensor[batch_num*current_batch_size:batch_num*current_batch_size+current_batch_size]
+        x_batch = torch.tensor(imgs_flatten[batch_num*current_batch_size:batch_num*current_batch_size+current_batch_size],
+                                   dtype=torch.float32, requires_grad=True, device=cuda0)
+        y_batch = torch.tensor(label_array[batch_num*current_batch_size:batch_num*current_batch_size+current_batch_size],
+                                     dtype=torch.float32, requires_grad=True, device=cuda0)
         loss = model.train_batch(x_batch, y_batch)
-    print("Loss : {}".format(loss.data.item()))
+        print("Epoch: {} Loss : {}".format(epoch, loss.data.item()))
 
 model.plot_loss()
 
-labels_predict = model(imgs_tensor[5000:6000])
-labels_validate = labels_tensor[5000:6000]
+
+# Validation step
+# TODO: don't use training data as validation!
+x_valid = torch.tensor(imgs_flatten[5000:6000],
+                       dtype=torch.float32, requires_grad=True, device=cuda0)
+y_valid = torch.tensor(label_array[5000:6000],
+                       dtype=torch.float32, requires_grad=True, device=cuda0)
+labels_predict = model(x_valid)
 
 label_predict_max = []
 label_validate_max = []
@@ -74,7 +82,7 @@ for label in labels_predict:
     # print(value)
     # print(idx)
 
-for label in labels_validate:
+for label in y_valid:
     # print(label)
     value, idx = label.max(0)
     label_validate_max.append(idx)

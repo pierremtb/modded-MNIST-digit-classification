@@ -26,16 +26,16 @@ class SimpleNN(torch.nn.Module):
     def init_optimizer(self):
         # define trainer
         # loss function
-        # self.criterion = torch.nn.MSELoss(reduction='sum')
         self.criterion = torch.nn.MSELoss(reduction='sum')
+        # self.criterion = torch.nn.CrossEntropyLoss()
         # optimizer
         # self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-5)
-        self.optimizer = torch.optim.SGD(self.parameters(), lr=1e-3)
+        self.optimizer = torch.optim.SGD(self.parameters(), lr=1e-4, momentum=0.9)
 
     def forward(self, x):
         h1 = F.relu(self.linear1(x))
         h2 = F.relu(self.linear2(h1))
-        y_pred = F.relu(self.linear3(h2))
+        y_pred = torch.sigmoid(self.linear3(h2))
         return y_pred
 
     def train_batch(self, x, y):

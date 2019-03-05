@@ -23,3 +23,14 @@ def flatten_imgs(imgs):
         # imgs_flatten[idx] = image.ravel()  # normalize the data
     return imgs_flatten
 
+
+def normalize_imgs(imgs):
+    imgs_norm = np.empty(imgs.shape)
+    for idx, image in enumerate(imgs):
+        imgs_norm[idx] = (image / 255.0)  # normalize the data
+    return imgs_norm
+
+
+def add_channel_to_imgs(imgs):
+    imgs_ch = np.reshape(imgs, (imgs.shape[0], imgs.shape[1], imgs.shape[2]))
+    return imgs_ch

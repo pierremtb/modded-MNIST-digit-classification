@@ -8,7 +8,6 @@ import torch.optim
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import math
-from livelossplot import PlotLosses
 
 class SimpleNN(torch.nn.Module):
 
@@ -62,10 +61,7 @@ class SimpleNN(torch.nn.Module):
             num_batches += 1
             last_batch_size = y.shape[0] % batch_size
 
-        liveloss = PlotLosses()
-
         for epoch in range(num_epochs):
-            logs = {}
             for batch_num in range(num_batches):
                 #  slice tensors according into requested batch
                 if batch_num == num_batches - 1:
@@ -82,11 +78,9 @@ class SimpleNN(torch.nn.Module):
                     y[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
                     dtype=torch.float32, requires_grad=True, device=cuda0)
                 loss = self.train_batch(x_batch, y_batch)
-                logs["log loss"] = loss
+                logs["train_loss"] = loss
                 if batch_num % 40 == 0:
                     print("Epoch: {} Loss : {}".format(epoch, loss.data.item()))
-            liveloss.update(logs)
-            liveloss.draw()
 
 
 

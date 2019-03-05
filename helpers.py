@@ -1,5 +1,8 @@
+from timeit import default_timer as timer
 import numpy as np
 
+def endTimer(name, t):
+    print("{0}: {1} s\n".format(name, round(timer() - t, 3)))
 
 def label_to_array(label, num_label_types):
     #  takes an integer label and converts it to array

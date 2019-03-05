@@ -50,6 +50,54 @@ class SimpleNN(torch.nn.Module):
         self.optimizer.step()
         return loss
 
+    def train_all_batches(self, x, y, batch_size, num_epochs):
+        cuda0 = torch.device('cuda:0')
+
+        # figure out how many batches we can make
+        num_batches = int(y.shape[0] / batch_size)
+        last_batch_size = batch_size
+        print("Number of batches = {}".format(num_batches))
+
+        if y.shape[0] % batch_size != 0:
+            num_batches += 1
+            last_batch_size = y.shape[0] % batch_size
+
+        for epoch in range(num_epochs):
+            for batch_num in range(num_batches):
+                #  slice tensors according into requested batch
+                if batch_num == num_batches - 1:
+                    # last batch logic!
+                    # print("Last batch!")
+                    current_batch_size = last_batch_size
+                else:
+                    current_batch_size = batch_size
+
+                x_batch = torch.tensor(
+                    x[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
+                    dtype=torch.float32, requires_grad=True, device=cuda0)
+                y_batch = torch.tensor(
+                    y[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
+                    dtype=torch.float32, requires_grad=True, device=cuda0)
+                loss = self.train_batch(x_batch, y_batch)
+                if batch_num % 40 == 0:
+                    print("Epoch: {} Loss : {}".format(epoch, loss.data.item()))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def plot_loss(self):
         plt.title('Loss over time')
         plt.xlabel('Epoch')

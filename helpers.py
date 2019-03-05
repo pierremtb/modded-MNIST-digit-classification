@@ -4,7 +4,7 @@ import numpy as np
 def label_to_array(label, num_label_types):
     #  takes an integer label and converts it to array
     array = np.zeros(num_label_types)
-    array[label] = 1.0
+    array[label] = 1
     return array
 
 
@@ -32,5 +32,6 @@ def normalize_imgs(imgs):
 
 
 def add_channel_to_imgs(imgs):
-    imgs_ch = np.reshape(imgs, (imgs.shape[0], imgs.shape[1], imgs.shape[2]))
+    # since image is greyscale we only have 1 channel
+    imgs_ch = np.reshape(imgs, (imgs.shape[0], 1, imgs.shape[1], imgs.shape[2]))
     return imgs_ch

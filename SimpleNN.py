@@ -88,21 +88,6 @@ class SimpleNN(torch.nn.Module):
             liveloss.update(logs)
             liveloss.draw()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def plot_loss(self):
         plt.title('Loss over time')
         plt.xlabel('Epoch')

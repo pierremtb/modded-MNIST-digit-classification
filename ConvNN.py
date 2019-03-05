@@ -16,12 +16,13 @@ class ConvNN(torch.nn.Module):
         super(ConvNN, self).__init__()  # call the inherited class constructor
 
         # define the architecture of the neural network
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=6, kernel_size=5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5)
-        self.linear1 = torch.nn.Linear(16*5*5, 120)
-        self.linear2 = torch.nn.Linear(120, 84)
-        self.linear3 = torch.nn.Linear(84, 10)
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5)  # output is 60x60
+        self.pool = nn.MaxPool2d(2, 2)  # output is 30x30
+        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=6)  # output is 24x24
+        # after another max pooling we get 12x12 matrix per channel
+        self.linear1 = torch.nn.Linear(64*12*12, 1000)
+        self.linear2 = torch.nn.Linear(1000, 200)
+        self.linear3 = torch.nn.Linear(200, 10)
         self.losses = []
         self.criterion = None
         self.optimizer = None
@@ -38,8 +39,7 @@ class ConvNN(torch.nn.Module):
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
-        print(x.shape)
-        x = x.view(-1, 16 * 5 * 5)
+        x = x.view(-1, 64 * 12 * 12)
         x = F.relu(self.linear1(x))
         x = F.relu(self.linear2(x))
         y_pred = self.linear3(x)
@@ -48,6 +48,7 @@ class ConvNN(torch.nn.Module):
     def train_batch(self, x, y):
         # Forward pass: Compute predicted y by passing x to the model
         y_pred = self(x)
+
         # Compute and print loss
         loss = self.criterion(y_pred, y)
         self.losses.append(loss.data.item())
@@ -84,7 +85,7 @@ class ConvNN(torch.nn.Module):
                     dtype=torch.float32, requires_grad=True, device=cuda0)
                 y_batch = torch.tensor(
                     y[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
-                    dtype=torch.float32, requires_grad=True, device=cuda0)
+                    dtype=torch.long, requires_grad=False, device=cuda0)
                 loss = self.train_batch(x_batch, y_batch)
                 if batch_num % 40 == 0:
                     print("Epoch: {} Loss : {}".format(epoch, loss.data.item()))

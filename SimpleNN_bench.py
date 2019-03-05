@@ -24,7 +24,7 @@ label_array = labels_to_array(labels, 10)
 # flatten and normalize image since we have a fully connected model
 imgs_flatten = flatten_imgs(imgs)
 
-model.train_all_batches(x=imgs_flatten, y=label_array, batch_size=64, num_epochs=100)
+model.train_all_batches(x=imgs_flatten, y=label_array, batch_size=64, num_epochs=50)
 
 model.plot_loss()
 
@@ -38,6 +38,7 @@ label_array = labels_to_array(labels, 10)
 imgs_flatten = flatten_imgs(imgs)
 
 # create tensors and load them on cuda core
+cuda0 = torch.device('cuda:0')
 x_valid = torch.tensor(imgs_flatten,
                        dtype=torch.float32, requires_grad=True, device=cuda0)
 y_valid = torch.tensor(label_array,

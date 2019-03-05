@@ -26,7 +26,7 @@ label_array = labels_to_array(labels, 10)
 # flatten and normalize image since we have a fully connected model
 imgs_flatten = flatten_imgs(imgs)
 
-t = timer
+t = timer()
 model.train_all_batches(x=imgs_flatten, y=label_array, batch_size=64, num_epochs=50)
 endTimer("Training", t)
 

@@ -50,8 +50,8 @@ class SimpleNN(torch.nn.Module):
         return loss
 
     def train_all_batches(self, x, y, batch_size, num_epochs):
-        cuda0 = torch.device('cpu')
-        # cuda0 = torch.device('cuda:0')
+        # cuda0 = torch.device('cpu')
+        cuda0 = torch.device('cuda:0')
 
         # figure out how many batches we can make
         num_batches = int(y.shape[0] / batch_size)

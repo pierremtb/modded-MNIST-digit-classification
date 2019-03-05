@@ -14,7 +14,7 @@ train_data = DataContainer("./input/train_images.pkl", "./input/train_labels.csv
 
 # create model and load it on cuda core
 model = SimpleNN(d_in=4096, h=200, d_out=10)
-# model.cuda()
+model.cuda()
 # model = SimpleNN(d_in=4096, h=2048, d_out=10)
 model.init_optimizer()
 
@@ -42,8 +42,8 @@ label_array = labels_to_array(labels, 10)
 imgs_flatten = flatten_imgs(imgs)
 
 # create tensors and load them on cuda core
-cuda0 = torch.device('cpu')
-# cuda0 = torch.device('cuda:0')
+# cuda0 = torch.device('cpu')
+cuda0 = torch.device('cuda:0')
 x_valid = torch.tensor(imgs_flatten,
                 dtype=torch.float32, requires_grad=True, device=cuda0)
 y_valid = torch.tensor(label_array,

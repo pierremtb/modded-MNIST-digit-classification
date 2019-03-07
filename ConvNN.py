@@ -16,13 +16,26 @@ class ConvNN(torch.nn.Module):
         super(ConvNN, self).__init__()  # call the inherited class constructor
 
         # define the architecture of the neural network
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5)  # output is 60x60
-        self.pool = nn.MaxPool2d(2, 2)  # output is 30x30
-        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5)  # output is 26x26
-        # after another max pooling we get 13x13 matrix per channel
-        self.linear1 = torch.nn.Linear(64*13*13, 1000)
-        self.linear2 = torch.nn.Linear(1000, 200)
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5),  # output is 60x60
+            nn.ReLU(True),
+            nn.MaxPool2d(2, 2)  # output is 30x30
+        )
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5),  # output is 26x26
+            nn.ReLU(True),
+            nn.MaxPool2d(2, 2)  # output is 13x13
+        )
+        self.linear1 = nn.Sequential(
+            torch.nn.Linear(64*13*13, 1000),
+            nn.ReLU(True)
+        )
+        self.linear2 = nn.Sequential(
+            torch.nn.Linear(1000, 200),
+            nn.ReLU(True)
+        )
         self.linear3 = torch.nn.Linear(200, 10)
+
         self.losses = []
         self.accuracies = []
         self.loss_LPF = 2.3
@@ -30,21 +43,21 @@ class ConvNN(torch.nn.Module):
         self.optimizer = None
 
     def init_optimizer(self):
-        # define trainer
         # loss function
         # self.criterion = torch.nn.MSELoss(reduction='sum')
         self.criterion = torch.nn.CrossEntropyLoss()
+
         # optimizer
         # self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
         self.optimizer = torch.optim.SGD(self.parameters(), lr=1e-2, momentum=0.9)
 
     def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 64 * 13 * 13)
-        x = F.relu(self.linear1(x))
-        x = F.relu(self.linear2(x))
-        y_pred = self.linear3(x)
+        h = self.conv1(x)
+        h = self.conv2(h)
+        h = h.reshape(h.size(0), -1)
+        h = self.linear1(h)
+        h = self.linear2(h)
+        y_pred = self.linear3(h)
         return y_pred
 
     def train_batch(self, x, y):

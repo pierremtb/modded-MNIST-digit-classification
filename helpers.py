@@ -19,6 +19,14 @@ def labels_to_array(labels, num_label_types):
     return label_array
 
 
+def array_to_labels(labels_array):
+    labels = []
+    for label_array in labels_array:
+        value, idx = label_array.max(0)
+        labels.append(idx)
+    return labels
+
+
 def flatten_imgs(imgs):
     # flatten and normalize image since we have a fully connected model
     imgs_flatten = np.empty((imgs.shape[0], imgs.shape[1] * imgs.shape[2]))
@@ -74,10 +82,7 @@ def validate_data(model, x, y):
         y_batch_predict_array = model(x_batch_valid)
 
         # model outputs array of 10 scores, max value idx is the predicted class
-        y_predict = []
-        for y_predict_array in y_batch_predict_array:
-            value, idx = y_predict_array.max(0)
-            y_predict.append(idx)
+        y_predict = array_to_labels(y_batch_predict_array)
 
         for idx, prediction in enumerate(y_predict):
             totalSamples += 1
@@ -85,3 +90,35 @@ def validate_data(model, x, y):
                 numCorrectPredictions += 1
     accuracy = numCorrectPredictions / totalSamples
     return accuracy
+
+
+def run_model_in_batches(model, x, batch_size):
+    cuda0 = torch.device('cuda:0')
+    # figure out how many batches we can make
+    num_batches = int(x.shape[0] / batch_size)
+    last_batch_size = batch_size
+    y_predict = torch.zeros(x.shape[0], dtype=torch.long)
+    idx = 0
+    for batch_num in range(num_batches):
+        #  slice tensors according into requested batch
+        if batch_num == num_batches - 1:
+            # last batch logic!
+            # print("Last batch!")
+            current_batch_size = last_batch_size
+        else:
+            current_batch_size = batch_size
+
+        x_batch_valid = torch.tensor(
+            x[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
+            dtype=torch.float32, requires_grad=True, device=cuda0)
+
+        y_batch_predict_array = model(x_batch_valid)
+
+        # model outputs array of 10 scores, max value idx is the predicted class
+        y_predict_batch = array_to_labels(y_batch_predict_array)
+
+        for prediction in y_predict_batch:
+            y_predict[idx] = prediction
+            idx += 1
+
+    return y_predict

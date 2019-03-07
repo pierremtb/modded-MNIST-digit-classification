@@ -24,6 +24,7 @@ class ConvNN(torch.nn.Module):
         self.linear2 = torch.nn.Linear(1000, 200)
         self.linear3 = torch.nn.Linear(200, 10)
         self.losses = []
+        self.loss_LPF = 2.3
         self.criterion = None
         self.optimizer = None
 
@@ -58,7 +59,7 @@ class ConvNN(torch.nn.Module):
         self.optimizer.step()
         return loss
 
-    def train_all_batches(self, x, y, batch_size, num_epochs):
+    def train_all_batches(self, x, y, batch_size, num_epochs, loss_target):
         cuda0 = torch.device('cuda:0')
 
         # figure out how many batches we can make
@@ -71,6 +72,9 @@ class ConvNN(torch.nn.Module):
             last_batch_size = y.shape[0] % batch_size
 
         for epoch in range(num_epochs):
+            if self.loss_LPF < loss_target:
+                print("reached loss target, ending early!")
+                break
             for batch_num in range(num_batches):
                 #  slice tensors according into requested batch
                 if batch_num == num_batches - 1:
@@ -87,8 +91,9 @@ class ConvNN(torch.nn.Module):
                     y[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
                     dtype=torch.long, requires_grad=False, device=cuda0)
                 loss = self.train_batch(x_batch, y_batch)
+                self.loss_LPF = 0.01 * float(loss.data.item()) + 0.99*self.loss_LPF
                 if batch_num % 40 == 0:
-                    print("Epoch: {} Loss : {}".format(epoch, loss.data.item()))
+                    print("Epoch: {} Loss : {}".format(epoch, self.loss_LPF))
 
     def plot_loss(self):
         plt.title('Loss over time')
@@ -96,3 +101,4 @@ class ConvNN(torch.nn.Module):
         plt.ylabel('Loss')
         plt.plot(self.losses)
         plt.show()
+

@@ -16,7 +16,12 @@ class DataContainer:
             self.labels = None
 
     def plot_image(self, idx):
-        plt.title('Image #{}    Label: {}'.format(idx, self.labels.iloc[idx]['Category']))
+        if self.labels is not None:
+            label = self.labels.iloc[idx]['Category']
+        else:
+            label = '?'
+
+        plt.title('Image #{}    Label: {}'.format(idx, label))
         plt.imshow(self.images[idx])
         plt.show()
 

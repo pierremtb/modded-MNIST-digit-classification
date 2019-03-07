@@ -27,7 +27,7 @@ label_array = labels_to_array(labels, 10)
 imgs_flatten = flatten_imgs(imgs)
 
 t = timer()
-model.train_all_batches(x=imgs_flatten, y=label_array, batch_size=64, num_epochs=50)
+model.train_all_batches(x=imgs_flatten, y=label_array, batch_size=64, num_epochs=10)
 endTimer("Training", t)
 
 model.plot_loss()
@@ -41,32 +41,6 @@ label_array = labels_to_array(labels, 10)
 # flatten and normalize image since we have a fully connected model
 imgs_flatten = flatten_imgs(imgs)
 
-# create tensors and load them on cuda core
-# cuda0 = torch.device('cpu')
-cuda0 = torch.device('cuda:0')
-x_valid = torch.tensor(imgs_flatten,
-                dtype=torch.float32, requires_grad=True, device=cuda0)
-y_valid = torch.tensor(label_array,
-                dtype=torch.float32, requires_grad=True, device=cuda0)
-labels_predict = model(x_valid)
-
-label_predict_max = []
-label_validate_max = []
-for label in labels_predict:
-    # print(label)
-    value, idx = label.max(0)
-    label_predict_max.append(idx)
-    # print(value)
-    # print(idx)
-
-for label in y_valid:
-    # print(label)
-    value, idx = label.max(0)
-    label_validate_max.append(idx)
-
-numCorrectPredictions = 0
-for idx, prediction in enumerate(label_predict_max):
-    if prediction == label_validate_max[idx]:
-        numCorrectPredictions += 1
-accuracy = numCorrectPredictions / len(label_predict_max)
+# validate model using validation data
+accuracy = validate_data(model, imgs_flatten, labels)
 print("accuracy is = " + str(accuracy * 100))

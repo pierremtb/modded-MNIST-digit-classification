@@ -18,9 +18,9 @@ class ConvNN(torch.nn.Module):
         # define the architecture of the neural network
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5)  # output is 60x60
         self.pool = nn.MaxPool2d(2, 2)  # output is 30x30
-        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=6)  # output is 24x24
-        # after another max pooling we get 12x12 matrix per channel
-        self.linear1 = torch.nn.Linear(64*12*12, 1000)
+        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5)  # output is 26x26
+        # after another max pooling we get 13x13 matrix per channel
+        self.linear1 = torch.nn.Linear(64*13*13, 1000)
         self.linear2 = torch.nn.Linear(1000, 200)
         self.linear3 = torch.nn.Linear(200, 10)
         self.losses = []
@@ -33,13 +33,13 @@ class ConvNN(torch.nn.Module):
         # self.criterion = torch.nn.MSELoss(reduction='sum')
         self.criterion = torch.nn.CrossEntropyLoss()
         # optimizer
-        # self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-5)
-        self.optimizer = torch.optim.SGD(self.parameters(), lr=1e-3, momentum=0.9)
+        # self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        self.optimizer = torch.optim.SGD(self.parameters(), lr=1e-2, momentum=0.9)
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 64 * 12 * 12)
+        x = x.view(-1, 64 * 13 * 13)
         x = F.relu(self.linear1(x))
         x = F.relu(self.linear2(x))
         y_pred = self.linear3(x)
@@ -51,7 +51,7 @@ class ConvNN(torch.nn.Module):
 
         # Compute and print loss
         loss = self.criterion(y_pred, y)
-        self.losses.append(loss.data.item())
+        self.losses.append(float(loss.data.item()))
         # Reset gradients to zero, perform a backward pass, and update the weights.
         self.optimizer.zero_grad()
         loss.backward()
@@ -89,22 +89,6 @@ class ConvNN(torch.nn.Module):
                 loss = self.train_batch(x_batch, y_batch)
                 if batch_num % 40 == 0:
                     print("Epoch: {} Loss : {}".format(epoch, loss.data.item()))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def plot_loss(self):
         plt.title('Loss over time')

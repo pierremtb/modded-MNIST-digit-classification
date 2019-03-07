@@ -1,5 +1,6 @@
 from timeit import default_timer as timer
 import numpy as np
+import torch
 
 def endTimer(name, t):
     print("{0}: {1} s\n".format(name, round(timer() - t, 3)))
@@ -38,3 +39,49 @@ def add_channel_to_imgs(imgs):
     # since image is greyscale we only have 1 channel
     imgs_ch = np.reshape(imgs, (imgs.shape[0], 1, imgs.shape[1], imgs.shape[2]))
     return imgs_ch
+
+
+def validate_data(model, x, y):
+    # validate in batches to save on gpu memory usage
+    cuda0 = torch.device('cuda:0')
+    # figure out how many batches we can make
+    batch_size = 64
+    num_batches = int(y.shape[0] / batch_size)
+    last_batch_size = batch_size
+    print("Number of validation batches = {}".format(num_batches))
+
+    if y.shape[0] % batch_size != 0:
+        num_batches += 1
+        last_batch_size = y.shape[0] % batch_size
+
+    numCorrectPredictions = 0
+    totalSamples = 0
+    for batch_num in range(num_batches):
+        #  slice tensors according into requested batch
+        if batch_num == num_batches - 1:
+            # last batch logic!
+            # print("Last batch!")
+            current_batch_size = last_batch_size
+        else:
+            current_batch_size = batch_size
+
+        x_batch_valid = torch.tensor(
+            x[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
+            dtype=torch.float32, requires_grad=True, device=cuda0)
+        y_batch_valid = torch.tensor(
+            y[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
+            dtype=torch.long, requires_grad=False, device=cuda0)
+        y_batch_predict_array = model(x_batch_valid)
+
+        # model outputs array of 10 scores, max value idx is the predicted class
+        y_predict = []
+        for y_predict_array in y_batch_predict_array:
+            value, idx = y_predict_array.max(0)
+            y_predict.append(idx)
+
+        for idx, prediction in enumerate(y_predict):
+            totalSamples += 1
+            if prediction == y_batch_valid[idx]:
+                numCorrectPredictions += 1
+    accuracy = numCorrectPredictions / totalSamples
+    return accuracy

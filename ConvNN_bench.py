@@ -6,11 +6,17 @@ from DataContainer import DataContainer
 from ConvNN import ConvNN
 from helpers import *
 
+# auto fallback to cpu
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+print("Running on:")
+print(device)
+print()
+
 # load training data from files
 train_data = DataContainer("./input/train_images.pkl", "./input/train_labels.csv")
 
 # create model and load it on cuda core
-model = ConvNN().cuda()
+model = ConvNN().to(device)
 model.init_optimizer()
 
 # get training data
@@ -21,9 +27,10 @@ imgs_norm = normalize_imgs(imgs)
 imgs_norm_ch = add_channel_to_imgs(imgs_norm)
 
 # train model
-model.train_all_batches(x=imgs_norm_ch, y=labels, batch_size=64, num_epochs=30, loss_target=0.001)
+model.train_all_batches(x=imgs_norm_ch, y=labels, batch_size=64, num_epochs=30, loss_target=0.001, device=device)
 
 model.plot_loss()
+model.plot_acc()
 
 # Get data for validation step
 imgs, labels = train_data.get_datas(35000, 5000)

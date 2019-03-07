@@ -24,6 +24,7 @@ class ConvNN(torch.nn.Module):
         self.linear2 = torch.nn.Linear(1000, 200)
         self.linear3 = torch.nn.Linear(200, 10)
         self.losses = []
+        self.accuracies = []
         self.loss_LPF = 2.3
         self.criterion = None
         self.optimizer = None
@@ -53,15 +54,21 @@ class ConvNN(torch.nn.Module):
         # Compute and print loss
         loss = self.criterion(y_pred, y)
         self.losses.append(float(loss.data.item()))
+
+        # Record accuracy
+        total = y.size(0)
+        _, predicted = torch.max(y_pred.data, 1)
+        correct = (predicted == y).sum().item()
+        acc = correct / total
+        self.accuracies.append(acc)
+
         # Reset gradients to zero, perform a backward pass, and update the weights.
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-        return loss
+        return loss, acc
 
-    def train_all_batches(self, x, y, batch_size, num_epochs, loss_target):
-        cuda0 = torch.device('cuda:0')
-
+    def train_all_batches(self, x, y, batch_size, num_epochs, loss_target, device):
         # figure out how many batches we can make
         num_batches = int(y.shape[0] / batch_size)
         last_batch_size = batch_size
@@ -86,19 +93,26 @@ class ConvNN(torch.nn.Module):
 
                 x_batch = torch.tensor(
                     x[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
-                    dtype=torch.float32, requires_grad=True, device=cuda0)
+                    dtype=torch.float32, requires_grad=True, device=device)
                 y_batch = torch.tensor(
                     y[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
-                    dtype=torch.long, requires_grad=False, device=cuda0)
-                loss = self.train_batch(x_batch, y_batch)
+                    dtype=torch.long, requires_grad=False, device=device)
+                loss, acc = self.train_batch(x_batch, y_batch)
                 self.loss_LPF = 0.01 * float(loss.data.item()) + 0.99*self.loss_LPF
                 if batch_num % 40 == 0:
-                    print("Epoch: {} Loss : {}".format(epoch, self.loss_LPF))
+                    print("Epoch: {}, Loss: {}, Acc: {}%".format(epoch, self.loss_LPF, round(acc * 100, 3)))
 
     def plot_loss(self):
         plt.title('Loss over time')
         plt.xlabel('Epoch')
         plt.ylabel('Loss')
         plt.plot(self.losses)
+        plt.show()
+
+    def plot_acc(self):
+        plt.title('Accuracy over time')
+        plt.xlabel('Epoch')
+        plt.ylabel('Accuracy')
+        plt.plot(self.accuracies)
         plt.show()
 

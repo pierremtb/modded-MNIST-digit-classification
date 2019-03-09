@@ -48,15 +48,19 @@ def add_channel_to_imgs(imgs):
     imgs_ch = np.reshape(imgs, (imgs.shape[0], 1, imgs.shape[1], imgs.shape[2]))
     return imgs_ch
 
+def preprocess(imgs):
+    # normalize and add channel to images
+    imgs_norm = normalize_imgs(imgs)
+    imgs_norm_ch = add_channel_to_imgs(imgs_norm)
+    return imgs_norm_ch
 
-def validate_data(model, x, y):
+def validate_data(model, x, y, device):
     # validate in batches to save on gpu memory usage
-    cuda0 = torch.device('cuda:0')
     # figure out how many batches we can make
     batch_size = 64
     num_batches = int(y.shape[0] / batch_size)
     last_batch_size = batch_size
-    print("Number of validation batches = {}".format(num_batches))
+    # print("Number of validation batches = {}".format(num_batches))
 
     if y.shape[0] % batch_size != 0:
         num_batches += 1
@@ -75,10 +79,10 @@ def validate_data(model, x, y):
 
         x_batch_valid = torch.tensor(
             x[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
-            dtype=torch.float32, requires_grad=True, device=cuda0)
+            dtype=torch.float32, requires_grad=True, device=device)
         y_batch_valid = torch.tensor(
             y[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
-            dtype=torch.long, requires_grad=False, device=cuda0)
+            dtype=torch.long, requires_grad=False, device=device)
         y_batch_predict_array = model(x_batch_valid)
 
         # model outputs array of 10 scores, max value idx is the predicted class
@@ -91,9 +95,14 @@ def validate_data(model, x, y):
     accuracy = numCorrectPredictions / totalSamples
     return accuracy
 
+def getDevice():
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    print("Running on:")
+    print(device)
+    print()
+    return device
 
-def run_model_in_batches(model, x, batch_size):
-    cuda0 = torch.device('cuda:0')
+def run_model_in_batches(model, x, batch_size, device):
     # figure out how many batches we can make
     num_batches = int(x.shape[0] / batch_size)
     last_batch_size = batch_size
@@ -110,7 +119,7 @@ def run_model_in_batches(model, x, batch_size):
 
         x_batch_valid = torch.tensor(
             x[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
-            dtype=torch.float32, requires_grad=True, device=cuda0)
+            dtype=torch.float32, requires_grad=True, device=device)
 
         y_batch_predict_array = model(x_batch_valid)
 

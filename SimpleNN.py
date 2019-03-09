@@ -49,10 +49,7 @@ class SimpleNN(torch.nn.Module):
         self.optimizer.step()
         return loss
 
-    def train_all_batches(self, x, y, batch_size, num_epochs):
-        # cuda0 = torch.device('cpu')
-        cuda0 = torch.device('cuda:0')
-
+    def train_all_batches(self, x, y, batch_size, num_epochs, device):
         # figure out how many batches we can make
         num_batches = int(y.shape[0] / batch_size)
         last_batch_size = batch_size
@@ -74,10 +71,10 @@ class SimpleNN(torch.nn.Module):
 
                 x_batch = torch.tensor(
                     x[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
-                    dtype=torch.float32, requires_grad=True, device=cuda0)
+                    dtype=torch.float32, requires_grad=True, device=device)
                 y_batch = torch.tensor(
                     y[batch_num * current_batch_size:batch_num * current_batch_size + current_batch_size],
-                    dtype=torch.float32, requires_grad=True, device=cuda0)
+                    dtype=torch.float32, requires_grad=True, device=device)
                 loss = self.train_batch(x_batch, y_batch)
                 if batch_num % 40 == 0:
                     print("Epoch: {} Loss : {}".format(epoch, loss.data.item()))

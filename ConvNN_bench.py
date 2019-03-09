@@ -7,10 +7,7 @@ from ConvNN import ConvNN
 from helpers import *
 
 # auto fallback to cpu
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-print("Running on:")
-print(device)
-print()
+device = getDevice()
 
 # load training data from files
 train_data = DataContainer("./input/train_images.pkl", "./input/train_labels.csv")
@@ -19,42 +16,32 @@ train_data = DataContainer("./input/train_images.pkl", "./input/train_labels.csv
 model = ConvNN().to(device)
 model.init_optimizer()
 
-# get training data
-imgs, labels = train_data.get_datas(0, 35000)
-
-# normalize and add channel to images
-imgs_norm = normalize_imgs(imgs)
-imgs_norm_ch = add_channel_to_imgs(imgs_norm)
+# get training data and val data
+imgs_train, y_train = train_data.get_datas(0, 35000)
+x_train = preprocess(imgs_train)
+imgs_val, y_val = train_data.get_datas(35000, 5000)
+x_val = preprocess(imgs_val)
 
 # train model
-model.train_all_batches(x=imgs_norm_ch, y=labels, batch_size=64, num_epochs=30, loss_target=0.001, device=device)
-
+model.train_all_batches(
+    x=x_train, y=y_train,
+    batch_size=64, num_epochs=30, loss_target=0.001,
+    device=device,
+    x_val=x_val, y_val=y_val, val_skip=1
+)
 model.plot_loss()
 model.plot_acc()
 
-# Get data for validation step
-imgs, labels = train_data.get_datas(35000, 5000)
-
-# normalize and add channel to images
-imgs_norm = normalize_imgs(imgs)
-imgs_norm_ch = add_channel_to_imgs(imgs_norm)
-
 # validate model using validation data
-accuracy = validate_data(model, imgs_norm_ch, labels)
-print("accuracy is = " + str(accuracy * 100))
+accuracy = validate_data(model, x_val, y_val, device)
+print("\n Validation accuracy is: {}%".format(round(accuracy * 100, 3)))
 
-# Running model on test data and producing output
+# run model on test data and producing output
 test_data = DataContainer("./input/test_images.pkl")
-# get training data
-test_imgs = test_data.get_datas()
+x_test = preprocess(test_data.get_datas())
+y_predict_test = run_model_in_batches(model, x_test, 64, device)
 
-# normalize and add channel to images
-test_imgs_norm = normalize_imgs(test_imgs)
-test_imgs_norm_ch = add_channel_to_imgs(test_imgs_norm)
-
-y_predict_test = run_model_in_batches(model, test_imgs_norm_ch, 64)
-
-out_csv_file = open('./output/submission.csv', 'x')
+out_csv_file = open('./output/submission.csv', 'w')
 out_csv_file.write("Id,Category\n")
 for idx, label in enumerate(y_predict_test):
     out_csv_file.write("{},{}\n".format(idx, label))

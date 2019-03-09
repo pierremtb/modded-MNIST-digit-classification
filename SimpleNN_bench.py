@@ -9,13 +9,14 @@ from helpers import *
 import numpy as np
 from timeit import default_timer as timer
 
+# auto fallback to cpu
+device = getDevice()
+
 # load training data from files
 train_data = DataContainer("./input/train_images.pkl", "./input/train_labels.csv")
 
 # create model and load it on cuda core
-model = SimpleNN(d_in=4096, h=200, d_out=10)
-model.cuda()
-# model = SimpleNN(d_in=4096, h=2048, d_out=10)
+model = SimpleNN(d_in=4096, h=200, d_out=10).to(device)
 model.init_optimizer()
 
 imgs, labels = train_data.get_datas(0, 35000)
@@ -27,7 +28,7 @@ label_array = labels_to_array(labels, 10)
 imgs_flatten = flatten_imgs(imgs)
 
 t = timer()
-model.train_all_batches(x=imgs_flatten, y=label_array, batch_size=64, num_epochs=10)
+model.train_all_batches(x=imgs_flatten, y=label_array, batch_size=64, num_epochs=10, device=device)
 endTimer("Training", t)
 
 model.plot_loss()
@@ -42,5 +43,5 @@ label_array = labels_to_array(labels, 10)
 imgs_flatten = flatten_imgs(imgs)
 
 # validate model using validation data
-accuracy = validate_data(model, imgs_flatten, labels)
+accuracy = validate_data(model, imgs_flatten, labels, device)
 print("accuracy is = " + str(accuracy * 100))

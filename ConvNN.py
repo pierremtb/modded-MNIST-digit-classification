@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import math
 
+from helpers import *
 
 class ConvNN(torch.nn.Module):
 
@@ -16,13 +17,16 @@ class ConvNN(torch.nn.Module):
         super(ConvNN, self).__init__()  # call the inherited class constructor
 
         # define the architecture of the neural network
+        # width_out = (width_in - kernel_size + 2*padding) / stride + 1
         self.conv1 = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5),  # output is 60x60
+            nn.BatchNorm2d(32),
             nn.ReLU(True),
             nn.MaxPool2d(2, 2)  # output is 30x30
         )
         self.conv2 = nn.Sequential(
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5),  # output is 26x26
+            nn.BatchNorm2d(64),
             nn.ReLU(True),
             nn.MaxPool2d(2, 2)  # output is 13x13
         )
@@ -38,6 +42,7 @@ class ConvNN(torch.nn.Module):
 
         self.losses = []
         self.accuracies = []
+        self.val_accuracies = []
         self.loss_LPF = 2.3
         self.criterion = None
         self.optimizer = None
@@ -48,8 +53,10 @@ class ConvNN(torch.nn.Module):
         self.criterion = torch.nn.CrossEntropyLoss()
 
         # optimizer
-        # self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
-        self.optimizer = torch.optim.SGD(self.parameters(), lr=1e-2, momentum=0.9)
+        lr = 1e-2
+        print("Learning rate: {}".format(lr))
+        # self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
+        self.optimizer = torch.optim.SGD(self.parameters(), lr=lr, momentum=0.9)
 
     def forward(self, x):
         h = self.conv1(x)
@@ -81,7 +88,7 @@ class ConvNN(torch.nn.Module):
         self.optimizer.step()
         return loss, acc
 
-    def train_all_batches(self, x, y, batch_size, num_epochs, loss_target, device):
+    def train_all_batches(self, x, y, batch_size, num_epochs, loss_target, device, x_val=[], y_val=[], val_skip=0):
         # figure out how many batches we can make
         num_batches = int(y.shape[0] / batch_size)
         last_batch_size = batch_size
@@ -112,8 +119,18 @@ class ConvNN(torch.nn.Module):
                     dtype=torch.long, requires_grad=False, device=device)
                 loss, acc = self.train_batch(x_batch, y_batch)
                 self.loss_LPF = 0.01 * float(loss.data.item()) + 0.99*self.loss_LPF
+
+                val_acc = 0
+                if batch_num % ((val_skip + 1) * 40) == 0 and len(x_val) == len(y_val) and len(x_val) > 0:
+                    val_acc = validate_data(self, x_val, y_val, device)
+                    self.val_accuracies.append(val_acc)
+
                 if batch_num % 40 == 0:
-                    print("Epoch: {}, Loss: {}, Acc: {}%".format(epoch, self.loss_LPF, round(acc * 100, 3)))
+                    toPrint = "Epoch: {}, Loss: {}, Acc: {}%".format(epoch, self.loss_LPF, round(acc * 100, 3))
+                    if (val_acc > 0):
+                        toPrint += ", ValAcc: {}%".format(round(val_acc * 100, 3))
+                    print(toPrint)
+            
 
     def plot_loss(self):
         plt.title('Loss over time')
@@ -127,5 +144,6 @@ class ConvNN(torch.nn.Module):
         plt.xlabel('Epoch')
         plt.ylabel('Accuracy')
         plt.plot(self.accuracies)
+        plt.plot(self.val_accuracies)
         plt.show()
 

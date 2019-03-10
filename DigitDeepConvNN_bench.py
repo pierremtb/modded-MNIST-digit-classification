@@ -20,8 +20,8 @@ model.init_optimizer()
 # get training data and val data
 imgs_train, y_train = train_data.get_datas(0, 35000)
 imgs_val, y_val = train_data.get_datas(35000, 5000)
-x_train = preprocess(imgs_train)
-x_val = preprocess(imgs_val)
+x_train = preprocess(imgs_train, find_digit=True)
+x_val = preprocess(imgs_val, find_digit=True)
 
 
 # train model
@@ -29,7 +29,7 @@ model.train_all_batches(
     x=x_train, y=y_train,
     batch_size=64, num_epochs=30, loss_target=0.001,
     device=device,
-    # x_val=x_val, y_val=y_val, val_skip=10
+    x_val=x_val, y_val=y_val, val_skip=5
 )
 model.plot_loss()
 model.plot_acc()
@@ -40,7 +40,7 @@ print("\n Validation accuracy is: {}%".format(round(accuracy * 100, 3)))
 
 # run model on test data and producing output
 test_data = DataContainer("./input/test_images.pkl")
-x_test = preprocess(test_data.get_datas())
+x_test = preprocess(test_data.get_datas(), find_digit=True)
 y_predict_test = run_model_in_batches(model, x_test, 64, device)
 
 out_csv_file = open('./output/submission.csv', 'w')

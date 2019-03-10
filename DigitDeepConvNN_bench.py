@@ -18,8 +18,8 @@ model = DeepConvNN().to(device)
 model.init_optimizer()
 
 # get training data and val data
-imgs_train, y_train = train_data.get_datas(0, 10)
-imgs_val, y_val = train_data.get_datas(35000, 10)
+imgs_train, y_train = train_data.get_datas(0, 35000)
+imgs_val, y_val = train_data.get_datas(35000, 5000)
 x_train = preprocess(imgs_train, find_digit=True, flag=df.CROP_TIGHT, print_first=True)
 x_val = preprocess(imgs_val, find_digit=True, flag=df.CROP_TIGHT)
 

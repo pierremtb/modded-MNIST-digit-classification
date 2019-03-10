@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import cv2
 import matplotlib.pyplot as plt
+import digitfinder as df
 
 def endTimer(name, t):
     print("{0}: {1} s\n".format(name, round(timer() - t, 3)))
@@ -50,35 +51,10 @@ def add_channel_to_imgs(imgs):
     imgs_ch = np.reshape(imgs, (imgs.shape[0], 1, imgs.shape[1], imgs.shape[2]))
     return imgs_ch
 
-def getBoundingRectArea(contour):
-    x, y, w, h = cv2.boundingRect(contour)
-    return w * h
-
-def getBiggestDigit(im):
-    img = np.array(im, dtype=np.uint8)
-    blur = cv2.GaussianBlur(img, (1, 1), 0)
-    t, binary = cv2.threshold(blur, 240, 255, cv2.THRESH_BINARY)
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
-
-    max_area = 0
-    for c in contours:
-        area = getBoundingRectArea(c)
-        if  area > max_area:
-            max_area = area
-            max_countour = c
-
-    for i in range(64):
-        for j in range(64):
-            if cv2.pointPolygonTest(max_countour,(j,i),True) < 0:
-                img[i,j] = 0
-    return img
-
-def preprocess(imgs, find_digit=False):
+def preprocess(imgs, find_digit=False, flag=df.CROP_TIGHT, print_first=False):
     # normalize and add channel to images
-    print("find_digit: {}".format(find_digit))
     if find_digit:
-        for i in range(len(imgs)):
-            imgs[i] = getBiggestDigit(imgs[i])
+        imgs = df.runWith(flag, imgs, print_first)
     imgs_norm = normalize_imgs(imgs)
     imgs_norm_ch = add_channel_to_imgs(imgs_norm)
     return imgs_norm_ch

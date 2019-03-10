@@ -10,6 +10,7 @@ class DataContainer:
 
     def __init__(self, img_pkl_file_path, label_csv_file_path=None):
         self.images = pd.read_pickle(img_pkl_file_path)
+        print(len(self.images))
         if label_csv_file_path is not None:
             self.labels = pd.read_csv(label_csv_file_path)
         else:

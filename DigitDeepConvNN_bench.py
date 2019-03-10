@@ -18,10 +18,10 @@ model = DeepConvNN().to(device)
 model.init_optimizer()
 
 # get training data and val data
-imgs_train, y_train = train_data.get_datas(0, 35000)
-imgs_val, y_val = train_data.get_datas(35000, 5000)
-x_train = preprocess(imgs_train, find_digit=True)
-x_val = preprocess(imgs_val, find_digit=True)
+imgs_train, y_train = train_data.get_datas(0, 10)
+imgs_val, y_val = train_data.get_datas(35000, 10)
+x_train = preprocess(imgs_train, find_digit=True, flag=df.CROP_TIGHT, print_first=True)
+x_val = preprocess(imgs_val, find_digit=True, flag=df.CROP_TIGHT)
 
 
 # train model
@@ -40,7 +40,7 @@ print("\n Validation accuracy is: {}%".format(round(accuracy * 100, 3)))
 
 # run model on test data and producing output
 test_data = DataContainer("./input/test_images.pkl")
-x_test = preprocess(test_data.get_datas(), find_digit=True)
+x_test = preprocess(test_data.get_datas(), find_digit=True, flag=df.CROP_TIGHT)
 y_predict_test = run_model_in_batches(model, x_test, 64, device)
 
 out_csv_file = open('./output/submission.csv', 'w')

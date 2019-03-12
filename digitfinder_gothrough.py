@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from helpers import *
 from digitfinder import *
 import time
-from PIL import Image
 
 # load training data from files
 train_data = DataContainer("./input/train_images_crop_tight.pkl", "./input/train_labels.csv")

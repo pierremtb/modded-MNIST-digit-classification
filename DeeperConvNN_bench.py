@@ -3,7 +3,7 @@
 # March 3 2019
 
 from DataContainer import DataContainer
-from DeepConvNN import DeepConvNN
+from DeeperConvNN import DeeperConvNN
 from helpers import *
 import matplotlib.pyplot as plt
 
@@ -14,7 +14,7 @@ device = getDevice()
 train_data = DataContainer("./input/train_images.pkl", "./input/train_labels.csv")
 
 # create model and load it on cuda core
-model = DeepConvNN().to(device)
+model = DeeperConvNN().to(device)
 model.init_optimizer()
 
 # get training data and val data
@@ -27,7 +27,7 @@ x_val = preprocess(imgs_val)
 # train model
 model.train_all_batches(
     x=x_train, y=y_train,
-    batch_size=32, num_epochs=30, loss_target=0.001,
+    batch_size=64, num_epochs=30, loss_target=0.001,
     device=device,
     x_val=x_val, y_val=y_val, val_skip=10
 )
@@ -41,7 +41,7 @@ print("\n Validation accuracy is: {}%".format(round(accuracy * 100, 3)))
 # run model on test data and producing output
 test_data = DataContainer("./input/test_images.pkl")
 x_test = preprocess(test_data.get_datas())
-y_predict_test = run_model_in_batches(model, x_test, 32, device)
+y_predict_test = run_model_in_batches(model, x_test, 64, device)
 
 out_csv_file = open('./output/submission.csv', 'w')
 out_csv_file.write("Id,Category\n")

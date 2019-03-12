@@ -11,27 +11,54 @@ import math
 
 from helpers import *
 
-class ConvNN(torch.nn.Module):
+class DeeperConvNN(torch.nn.Module):
 
     def __init__(self):
-        super(ConvNN, self).__init__()  # call the inherited class constructor
+        super(DeeperConvNN, self).__init__()  # call the inherited class constructor
 
-        print("Model: ConvNN")
-        # define the architecture of the neural network
+        print("Model: DeeperConvNN")
+        # define the architecture of the neural network 
+        # width_out = (width_in - kernel_size + 2*padding) / stride + 1
         self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5),  # output is 60x60
+            nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5, stride=1),  # output is 60x60
             nn.BatchNorm2d(32),
             nn.ReLU(True),
-            nn.MaxPool2d(2, 2)  # output is 30x30
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5),  # output is 26x26
+            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=5, stride=1),  # output is 56x56
+            nn.BatchNorm2d(32),
+            nn.ReLU(True),
+            nn.MaxPool2d(2, 2)  # output is 28x28
+        )
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, padding=2, stride=1),  # output is 29x29
             nn.BatchNorm2d(64),
             nn.ReLU(True),
-            nn.MaxPool2d(2, 2)  # output is 13x13
+        )
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=4, padding=1, stride=1),  # output is 28x28
+            nn.BatchNorm2d(64),
+            nn.ReLU(True),
+        )
+        self.conv5 = nn.Sequential(
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=5, stride=1),  # output is 24x24
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+        )
+        self.conv6 = nn.Sequential(
+            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=5, stride=1),  # output is 20x20
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+            # nn.MaxPool2d(2, 2)  # output is 10x10
+        )
+        self.conv7 = nn.Sequential(
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=5, stride=1),  # output is 16x16
+            nn.BatchNorm2d(256),
+            nn.ReLU(True),
+            nn.MaxPool2d(2, 2)  # output is 8x8
         )
         self.linear1 = nn.Sequential(
-            torch.nn.Linear(64*13*13, 1000),
+            torch.nn.Linear(256*8*8, 1000),
             nn.ReLU(True)
         )
         self.linear2 = nn.Sequential(
@@ -56,11 +83,17 @@ class ConvNN(torch.nn.Module):
         lr = 1e-2
         print("Learning rate: {}".format(lr))
         # self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
-        self.optimizer = torch.optim.SGD(self.parameters(), lr=lr, momentum=0.9)
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=0.001, betas= (0.9, 0.99))
+        # self.optimizer = torch.optim.SGD(self.parameters(), lr=lr, momentum=0.9, weight_decay=1e-5)
 
     def forward(self, x):
         h = self.conv1(x)
         h = self.conv2(h)
+        h = self.conv3(h)
+        h = self.conv4(h)
+        h = self.conv5(h)
+        h = self.conv6(h)
+        h = self.conv7(h)
         h = h.reshape(h.size(0), -1)
         h = self.linear1(h)
         h = self.linear2(h)

@@ -16,6 +16,7 @@ class DeepConvNN(torch.nn.Module):
     def __init__(self):
         super(DeepConvNN, self).__init__()  # call the inherited class constructor
 
+        print("Model: DeepConvNN")
         # define the architecture of the neural network 
         # width_out = (width_in - kernel_size + 2*padding) / stride + 1
         self.conv1 = nn.Sequential(

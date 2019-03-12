@@ -3,7 +3,7 @@
 # March 3 2019
 
 from DataContainer import DataContainer
-from DeepConvNN import DeepConvNN
+from DigitDeepConvNN import DigitDeepConvNN
 from helpers import *
 import matplotlib.pyplot as plt
 
@@ -14,7 +14,7 @@ device = getDevice()
 train_data = DataContainer("./input/train_images.pkl", "./input/train_labels.csv")
 
 # create model and load it on cuda core
-model = DeepConvNN().to(device)
+model = DigitDeepConvNN().to(device)
 model.init_optimizer()
 
 # get training data and val data

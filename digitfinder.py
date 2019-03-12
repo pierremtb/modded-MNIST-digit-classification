@@ -10,7 +10,7 @@ CROP_TIGHT = 2
 
 def getBoundingRectArea(contour):
     x, y, w, h = cv2.boundingRect(contour)
-    return w * h, (x, y, w, h)
+    return x*y, (x, y, w, h)
 
 
 def getContours(image):
@@ -29,11 +29,11 @@ def getContours(image):
 def flagCropTight(image):
     copy, contours = getContours(image)
 
-    max_area = 0
+    max_side = 0
     for c in contours:
-        area, _ = getBoundingRectArea(c)
-        if  area > max_area:
-            max_area = area
+        area, (_, _, w, h) = getBoundingRectArea(c)
+        if max(w, h) > max_side:
+            max_side = max(w, h)
             max_countour = c
 
     for i in range(64):
@@ -91,13 +91,20 @@ names = {
 }
 
 def runWith(flag, imgs, print_first=False):
+    if print_first:
+        i = random.randint(0, len(imgs) - 1)
+        print("Using preprocessing: " + names[flag])
+        fig = plt.figure()
+        fig.add_subplot(1,2,1)
+        plt.title("Original")
+        plt.imshow(imgs[i])
+        fig.add_subplot(1,2,2)
+        plt.title(names[flag])
+        plt.imshow(functions[flag](imgs[i]))
+        plt.show()
+
     for i in range(len(imgs)):
         imgs[i] = functions[flag](imgs[i])
-        if print_first and i == 0:
-            print("Using preprocessing: " + names[flag])
-            plt.imshow(imgs[i])
-            plt.title(names[flag])
-            plt.show()
     return imgs
 
 def test(train_data):

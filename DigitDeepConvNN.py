@@ -11,11 +11,12 @@ import math
 
 from helpers import *
 
-class DeepConvNN(torch.nn.Module):
+class DigitDeepConvNN(torch.nn.Module):
 
     def __init__(self):
-        super(DeepConvNN, self).__init__()  # call the inherited class constructor
+        super(DigitDeepConvNN, self).__init__()  # call the inherited class constructor
 
+        print("Model: DigitDeepConvNN (last)")
         # define the architecture of the neural network 
         # width_out = (width_in - kernel_size + 2*padding) / stride + 1
         self.conv1 = nn.Sequential(
@@ -69,7 +70,7 @@ class DeepConvNN(torch.nn.Module):
         self.criterion = torch.nn.CrossEntropyLoss()
 
         # optimizer
-        lr = 1e-2
+        lr = 1e-3
         print("Learning rate: {}".format(lr))
         # self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
         self.optimizer = torch.optim.SGD(self.parameters(), lr=lr, momentum=0.9)
@@ -81,6 +82,7 @@ class DeepConvNN(torch.nn.Module):
         h = self.conv4(h)
         h = self.conv5(h)
         h = self.conv6(h)
+        # h = self.drop_out(h)
         h = h.reshape(h.size(0), -1)
         h = self.linear1(h)
         y_pred = self.linear2(h)

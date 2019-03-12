@@ -93,11 +93,23 @@ def validate_data(model, x, y, device):
         # model outputs array of 10 scores, max value idx is the predicted class
         y_predict = array_to_labels(y_batch_predict_array)
 
+        fuckedUp = []
         for idx, prediction in enumerate(y_predict):
             totalSamples += 1
             if prediction == y_batch_valid[idx]:
                 numCorrectPredictions += 1
+            else:
+                fuckedUp.append((y_batch_valid[idx], prediction))
     accuracy = numCorrectPredictions / totalSamples
+
+    shit = []
+    for i in range(0, 10):
+        count = sum(1 for elem in fuckedUp if elem[0] == i)
+        confusedWidth = [elem[1].data.item() for elem in fuckedUp if elem[0] == i]
+        confusedWidth = np.mean(confusedWidth) if len(confusedWidth) > 0 else []
+        shit.append((i, count, confusedWidth))
+    print("Missclassified: ", shit)
+
     return accuracy
 
 def getDevice():

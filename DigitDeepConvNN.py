@@ -70,7 +70,7 @@ class DigitDeepConvNN(torch.nn.Module):
         self.criterion = torch.nn.CrossEntropyLoss()
 
         # optimizer
-        lr = 1e-3
+        lr = 1e-2
         print("Learning rate: {}".format(lr))
         # self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
         self.optimizer = torch.optim.SGD(self.parameters(), lr=lr, momentum=0.9)

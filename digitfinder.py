@@ -21,7 +21,9 @@ def getContours(image):
     copy = np.array(image, dtype=np.uint8)
     blur = cv2.GaussianBlur(copy, (blur, blur), 0)
     _, binary = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY)
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
+    kernel = np.ones((2,2),np.uint8)
+    erosion = cv2.erode(binary,kernel,iterations = 1)
+    contours, _ = cv2.findContours(erosion, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2:]
     
     return copy, contours
 
@@ -29,17 +31,56 @@ def getContours(image):
 def flagCropTight(image):
     copy, contours = getContours(image)
 
+    if len(contours) == 0:
+        return copy
+
     max_side = 0
     for c in contours:
-        area, (_, _, w, h) = getBoundingRectArea(c)
-        if max(w, h) > max_side:
-            max_side = max(w, h)
-            max_countour = c
+        area, (x, y, w, h) = getBoundingRectArea(c)
+        max_wh = max(w, h)
+        #x+w < 64 and y+h < 64 and x > 0 and y > 0 and
+        if max_wh > max_side and max_wh <= 36 and max_wh > 2:
+            max_side = max_wh
+            max_contour = c
 
+        # cv2.rectangle(copy,(x,y),(x+max(w,h),y+max(w,h)),(0,255,0),2)
+
+    # if max_side == 0:
+    if max_side == 0:
+        for c in contours:
+            area, (x, y, w, h) = getBoundingRectArea(c)
+            max_wh = max(w, h)
+            #x+w < 64 and y+h < 64 and x > 0 and y > 0 and
+            if max_wh > max_side and max_wh > 2:
+                max_side = max_wh
+                max_contour = c
+
+
+    # print(max_side)
     for i in range(64):
         for j in range(64):
-            if cv2.pointPolygonTest(max_countour,(j,i),True) < 0:
-                copy[i,j] = 0
+            if max_side > 0:
+                if cv2.pointPolygonTest(max_contour,(j,i),True) < 0:
+                    copy[i,j] = 0
+    return copy
+
+def showBoundingBox(image):
+    copy, contours = getContours(image)
+
+    max_side = 0
+    for c in contours:
+        _, (x, y, w, h) = getBoundingRectArea(c)
+        max_wh = max(w, h)
+        if max_wh <= 29:
+            if max_wh > max_side:
+                max_side = max_wh
+
+            cv2.rectangle(copy,(x,y),(x+max(w,h),y+max(w,h)),(0,255,0),2)
+
+    # for i in range(64):
+    #     for j in range(64):
+    #         if cv2.pointPolygonTest(max_countour,(j,i),True) < 0:
+    #             copy[i,j] = 0
     return copy
 
 

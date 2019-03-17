@@ -83,8 +83,8 @@ class DeeperConvNN(torch.nn.Module):
         lr = 1e-2
         print("Learning rate: {}".format(lr))
         # self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=0.001, betas= (0.9, 0.99))
-        # self.optimizer = torch.optim.SGD(self.parameters(), lr=lr, momentum=0.9, weight_decay=1e-5)
+        # self.optimizer = torch.optim.Adam(self.parameters(), lr=0.001, betas= (0.9, 0.99))
+        self.optimizer = torch.optim.SGD(self.parameters(), lr=lr, momentum=0.9)
 
     def forward(self, x):
         h = self.conv1(x)

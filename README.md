@@ -22,6 +22,9 @@ Run DeeperConvNN_bench.py to replicate results.
 Same as DeepConvNN but using bounding-box preprocessing. Three methods were proposed, with CROP_TIGHT being the default and best-performing one.
 Run DigitDeepConvNN_bench.py to replicate results.
 
+## Preprocessing notes
+`digitfind_test1.py` and `digitfind_test2` are useful to test out the output of the preprocessing, and they respectively plot images of the training set and export preprocessed images as png files for debugging purposes.
+
 ## Packages used
 - `timeit`
 - `numpy`

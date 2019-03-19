@@ -1,3 +1,10 @@
+# Michael Segev
+# Pierre Jacquier
+# Albert Faucher
+# Group 70
+# COMP 551 MP3
+# March 18 2019
+
 import numpy as np
 import cv2
 import random

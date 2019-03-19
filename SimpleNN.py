@@ -1,18 +1,14 @@
 # Michael Segev
-# COMP 551 MP3
-# March 3 2019
-
-import torch
-import torch.nn as nn
-import torch.optim
-import torch.nn.functional as F
-# Michael Segev
 # Pierre Jacquier
 # Albert Faucher
 # Group 70
 # COMP 551 MP3
 # March 18 2019
 
+import torch
+import torch.nn as nn
+import torch.optim
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import math
 
